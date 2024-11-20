@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """DB module
 """
-from sqlalchemy import create_engine,turple_
+from sqlalchemy import create_engine, tuple_
 from sqlalchemy.exc import InvalidRequestError
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.session import Session
@@ -10,78 +10,77 @@ from user import Base, User
 
 
 class DB:
-    """DB class
+    """DB class for managing the database
     """
 
     def __init__(self) -> None:
-        """Initialize a new Db
-        """
+        """Initialize a new DB instance"""
         self._engine = create_engine("sqlite:///a.db")
         Base.metadata.drop_all(self._engine)
         Base.metadata.create_all(self._engine)
         self.__session = None
 
     def _session(self) -> Session:
-        """Memorized session object
-        """
+        """Memoized session object"""
         if self.__session is None:
-            DBSession = sessionmaker(bind = self._engine)
+            DBSession = sessionmaker(bind=self._engine)
             self.__session = DBSession()
-            return self.__session
+        return self.__session
 
     def add_user(self, email: str, hashed_password: str) -> User:
-        """ Creates new User instance and
-            saves them to the database.
-            Args:
-                - email
-                - hashed_password
-            Return:
-                - new User object
+        """Create a new User instance and save it to the database.
+        
+        Args:
+            email: User's email address.
+            hashed_password: User's hashed password.
+        
+        Returns:
+            The created User object.
         """
-        session = self._session
+        session = self._session()
         try:
             new_user = User(email=email, hashed_password=hashed_password)
             session.add(new_user)
             session.commit()
-        except Exception:
+            return new_user
+        except Exception as e:
             session.rollback()
-            new_user = None
-        return new_user
+            print(f"Error adding user: {e}")
+            return None
 
     def find_user_by(self, **kwargs) -> User:
-        """ Find user by a given attribute
-            Args:
-                - Dictionary of attributes to use as search
-                  parameters
-            Return:
-                - User object
+        """Find a user by given attributes.
+        
+        Args:
+            kwargs: Dictionary of attributes to use as search parameters.
+        
+        Returns:
+            The User object matching the query.
+        
+        Raises:
+            InvalidRequestError: If an invalid attribute is provided.
+            NoResultFound: If no matching user is found.
         """
-
-        attrs, vals = [], []
-        for attr, val in kwargs.items():
-            if not hasattr(User, attr):
-                raise InvalidRequestError()
-            attrs.append(getattr(User, attr))
-            vals.append(val)
-
-        session = self._session
-        query = session.query(User)
-        user = query.filter(tuple_(*attrs).in_([tuple(vals)])).first()
-        if not user:
-            raise NoResultFound()
-        return user
+        session = self._session()
+        query = session.query(User).filter_by(**kwargs).first()
+        if query is None:
+            raise NoResultFound("No user found with the specified attributes.")
+        return query
 
     def update_user(self, user_id: int, **kwargs) -> None:
-        """ Searches for user instance using given id parameter
-            Args:
-                - user_id: user's id
-            Return:
-                - User instance found
+        """Update attributes of a user.
+        
+        Args:
+            user_id: The ID of the user to update.
+            kwargs: Attributes to update with their new values.
+        
+        Raises:
+            ValueError: If an invalid attribute is provided.
         """
+        session = self._session()
         user = self.find_user_by(id=user_id)
-        session = self._session
         for attr, val in kwargs.items():
             if not hasattr(User, attr):
-                raise ValueError
+                raise ValueError(f"Invalid attribute: {attr}")
             setattr(user, attr, val)
         session.commit()
