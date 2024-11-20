@@ -3,6 +3,7 @@
 `Back-end` `Authentification`
 
 ![image](https://s3.amazonaws.com/alx-intranet.hbtn.io/uploads/medias/2019/12/4cb3c8c607afc1d1582d.jpg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIARDDGGGOUSBVO6H7D%2F20241120%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20241120T082858Z&X-Amz-Expires=86400&X-Amz-SignedHeaders=host&X-Amz-Signature=19e1b71566c8b8feea512343e635b5d174fec52bced8d4eb5706c16820dedcbf)
+
 In the industry, you should not implement your own authentication system and use a module or framework that 
 doing it for you (like in Python-Flask: Flask-User). 
 Here, for the learning purpose, we will walk through each step of this mechanism to understand it by doing.
